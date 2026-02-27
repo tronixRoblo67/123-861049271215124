@@ -1,4 +1,4 @@
---// Liquid Glass UI Library v2
+--// Liquid Glass UI Library v2 (Tabs Update)
 local LiquidUI = {}
 LiquidUI.__index = LiquidUI
 
@@ -69,8 +69,6 @@ function LiquidUI:CreateWindow(titleText, versionText)
 	local LEFT_WIDTH = S(250)
 	local OWNER_WIDTH = S(1000)
 	local GAP = S(25)
-	local LEFT_TOP_HEIGHT = S(120)
-	local INNER_GAP = S(15)
 
 	---------------------------------------------------
 	-- HOLDER
@@ -100,8 +98,9 @@ function LiquidUI:CreateWindow(titleText, versionText)
 	Instance.new("UICorner", left).CornerRadius = UDim.new(0,S(45))
 	addStroke(left)
 
+	-- Title
 	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(1,0,0,S(60))
+	title.Size = UDim2.new(1,0,0,S(80))
 	title.Position = UDim2.new(0,0,0,S(20))
 	title.BackgroundTransparency = 1
 	title.Text = titleText .. "\n" .. versionText
@@ -109,6 +108,26 @@ function LiquidUI:CreateWindow(titleText, versionText)
 	title.TextColor3 = Color3.fromRGB(255,255,255)
 	title.FontFace = InterFont
 	title.Parent = left
+
+	---------------------------------------------------
+	-- TABS SCROLL (без пустоты)
+	---------------------------------------------------
+
+	local tabsScroll = Instance.new("ScrollingFrame")
+	tabsScroll.Size = UDim2.new(1,-S(20),1,-S(130))
+	tabsScroll.Position = UDim2.new(0,S(10),0,S(110))
+	tabsScroll.CanvasSize = UDim2.new(0,0,0,0)
+	tabsScroll.ScrollBarImageTransparency = 0
+	tabsScroll.BackgroundTransparency = 1
+	tabsScroll.Parent = left
+
+	local tabsLayout = Instance.new("UIListLayout")
+	tabsLayout.Padding = UDim.new(0,S(15))
+	tabsLayout.Parent = tabsScroll
+
+	tabsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		tabsScroll.CanvasSize = UDim2.new(0,0,0,tabsLayout.AbsoluteContentSize.Y + S(10))
+	end)
 
 	---------------------------------------------------
 	-- OWNER PANEL
@@ -123,10 +142,6 @@ function LiquidUI:CreateWindow(titleText, versionText)
 	Instance.new("UICorner", owner).CornerRadius = UDim.new(0,S(45))
 	addStroke(owner)
 
-	---------------------------------------------------
-	-- DIVIDER (БЕЛЫЙ)
-	---------------------------------------------------
-
 	local divider = Instance.new("Frame")
 	divider.Size = UDim2.new(0,2,1,-S(60))
 	divider.Position = UDim2.new(0.5,-1,0,S(30))
@@ -134,116 +149,140 @@ function LiquidUI:CreateWindow(titleText, versionText)
 	divider.BackgroundTransparency = 0.4
 	divider.Parent = owner
 
-	---------------------------------------------------
-	-- SCROLL LEFT
-	---------------------------------------------------
-
-	local leftScroll = Instance.new("ScrollingFrame")
-	leftScroll.Size = UDim2.new(0.5,-S(20),1,-S(40))
-	leftScroll.Position = UDim2.new(0,S(20),0,S(20))
-	leftScroll.CanvasSize = UDim2.new(0,0,0,0)
-	leftScroll.ScrollBarImageTransparency = 0
-	leftScroll.BackgroundTransparency = 1
-	leftScroll.Parent = owner
-
-	local leftLayout = Instance.new("UIListLayout")
-	leftLayout.Padding = UDim.new(0,S(20))
-	leftLayout.Parent = leftScroll
+	local pagesFolder = Instance.new("Folder", owner)
 
 	---------------------------------------------------
-	-- SCROLL RIGHT
-	---------------------------------------------------
-
-	local rightScroll = leftScroll:Clone()
-	rightScroll.Position = UDim2.new(0.5,S(10),0,S(20))
-	rightScroll.Parent = owner
-
-	local rightLayout = rightScroll:FindFirstChildOfClass("UIListLayout")
-
-	---------------------------------------------------
-	-- AUTO CANVAS
-	---------------------------------------------------
-
-	local function updateCanvas(scroll, layout)
-		layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-			scroll.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + S(20))
-		end)
-	end
-
-	updateCanvas(leftScroll,leftLayout)
-	updateCanvas(rightScroll,rightLayout)
-
-	---------------------------------------------------
-	-- CREATE TOGGLE
-	---------------------------------------------------
-
-	local function createToggle(parent, text, callback)
-		local enabled = false
-
-		local container = Instance.new("Frame")
-		container.Size = UDim2.new(1,0,0,S(60))
-		container.BackgroundTransparency = 1
-		container.Parent = parent
-
-		-- Text (СИНИЙ ЗОНА)
-		local label = Instance.new("TextLabel")
-		label.Size = UDim2.new(0.7,0,1,0)
-		label.BackgroundTransparency = 1
-		label.Text = text
-		label.TextScaled = true
-		label.TextColor3 = Color3.fromRGB(255,255,255)
-		label.FontFace = InterFont
-		label.TextXAlignment = Enum.TextXAlignment.Left
-		label.Parent = container
-
-		-- Toggle (КРАСНЫЙ)
-		local toggle = Instance.new("Frame")
-		toggle.Size = UDim2.new(0,S(100),0,S(40))
-		toggle.Position = UDim2.new(1,-S(110),0.5,-S(20))
-		toggle.BackgroundColor3 = Color3.fromRGB(255,255,255)
-		toggle.BackgroundTransparency = 0.8
-		toggle.Parent = container
-		Instance.new("UICorner", toggle).CornerRadius = UDim.new(1,0)
-		addStroke(toggle)
-
-		local circle = Instance.new("Frame")
-		circle.Size = UDim2.new(0,S(32),0,S(32))
-		circle.Position = UDim2.new(0,S(4),0.5,-S(16))
-		circle.BackgroundColor3 = Color3.fromRGB(255,255,255)
-		circle.Parent = toggle
-		Instance.new("UICorner", circle).CornerRadius = UDim.new(1,0)
-
-		toggle.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				enabled = not enabled
-
-				if enabled then
-					TweenService:Create(circle,TweenInfo.new(0.25),
-						{Position = UDim2.new(1,-S(36),0.5,-S(16))}):Play()
-				else
-					TweenService:Create(circle,TweenInfo.new(0.25),
-						{Position = UDim2.new(0,S(4),0.5,-S(16))}):Play()
-				end
-
-				if callback then
-					callback(enabled)
-				end
-			end
-		end)
-	end
-
-	---------------------------------------------------
-	-- API
+	-- TAB SYSTEM
 	---------------------------------------------------
 
 	local Window = {}
+	local currentPage
 
-	function Window:AddLeftToggle(text, callback)
-		createToggle(leftScroll, text, callback)
-	end
+	function Window:CreateTab(tabName)
 
-	function Window:AddRightToggle(text, callback)
-		createToggle(rightScroll, text, callback)
+		local Tab = {}
+
+		-- Tab Button
+		local tabButton = Instance.new("TextButton")
+		tabButton.Size = UDim2.new(1,0,0,S(70))
+		tabButton.BackgroundColor3 = Color3.fromRGB(255,255,255)
+		tabButton.BackgroundTransparency = 0.85
+		tabButton.Text = tabName
+		tabButton.TextScaled = true
+		tabButton.TextColor3 = Color3.fromRGB(255,255,255)
+		tabButton.FontFace = InterFont
+		tabButton.Parent = tabsScroll
+		Instance.new("UICorner", tabButton).CornerRadius = UDim.new(0,S(25))
+		addStroke(tabButton,1.5,0.5)
+
+		-- Page
+		local page = Instance.new("Frame")
+		page.Size = UDim2.new(1,0,1,0)
+		page.BackgroundTransparency = 1
+		page.Visible = false
+		page.Parent = pagesFolder
+
+		-- Left Scroll
+		local leftScroll = Instance.new("ScrollingFrame", page)
+		leftScroll.Size = UDim2.new(0.5,-S(20),1,-S(40))
+		leftScroll.Position = UDim2.new(0,S(20),0,S(20))
+		leftScroll.CanvasSize = UDim2.new(0,0,0,0)
+		leftScroll.ScrollBarImageTransparency = 0
+		leftScroll.BackgroundTransparency = 1
+
+		local leftLayout = Instance.new("UIListLayout")
+		leftLayout.Padding = UDim.new(0,S(20))
+		leftLayout.Parent = leftScroll
+
+		leftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			leftScroll.CanvasSize = UDim2.new(0,0,0,leftLayout.AbsoluteContentSize.Y + S(20))
+		end)
+
+		-- Right Scroll
+		local rightScroll = leftScroll:Clone()
+		rightScroll.Position = UDim2.new(0.5,S(10),0,S(20))
+		rightScroll.Parent = page
+
+		local rightLayout = rightScroll:FindFirstChildOfClass("UIListLayout")
+		rightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			rightScroll.CanvasSize = UDim2.new(0,0,0,rightLayout.AbsoluteContentSize.Y + S(20))
+		end)
+
+		-- Switch Page
+		tabButton.MouseButton1Click:Connect(function()
+			if currentPage then
+				currentPage.Visible = false
+			end
+			page.Visible = true
+			currentPage = page
+		end)
+
+		---------------------------------------------------
+		-- TOGGLE
+		---------------------------------------------------
+
+		local function createToggle(parent, text, callback)
+			local enabled = false
+
+			local container = Instance.new("Frame")
+			container.Size = UDim2.new(1,0,0,S(60))
+			container.BackgroundTransparency = 1
+			container.Parent = parent
+
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.new(0.7,0,1,0)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextScaled = true
+			label.TextColor3 = Color3.fromRGB(255,255,255)
+			label.FontFace = InterFont
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Parent = container
+
+			local toggle = Instance.new("Frame")
+			toggle.Size = UDim2.new(0,S(100),0,S(40))
+			toggle.Position = UDim2.new(1,-S(110),0.5,-S(20))
+			toggle.BackgroundColor3 = Color3.fromRGB(255,255,255)
+			toggle.BackgroundTransparency = 0.8
+			toggle.Parent = container
+			Instance.new("UICorner", toggle).CornerRadius = UDim.new(1,0)
+			addStroke(toggle)
+
+			local circle = Instance.new("Frame")
+			circle.Size = UDim2.new(0,S(32),0,S(32))
+			circle.Position = UDim2.new(0,S(4),0.5,-S(16))
+			circle.BackgroundColor3 = Color3.fromRGB(255,255,255)
+			circle.Parent = toggle
+			Instance.new("UICorner", circle).CornerRadius = UDim.new(1,0)
+
+			toggle.InputBegan:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+					enabled = not enabled
+
+					if enabled then
+						TweenService:Create(circle,TweenInfo.new(0.25),
+							{Position = UDim2.new(1,-S(36),0.5,-S(16))}):Play()
+					else
+						TweenService:Create(circle,TweenInfo.new(0.25),
+							{Position = UDim2.new(0,S(4),0.5,-S(16))}):Play()
+					end
+
+					if callback then
+						callback(enabled)
+					end
+				end
+			end)
+		end
+
+		function Tab:AddLeftToggle(text, callback)
+			createToggle(leftScroll, text, callback)
+		end
+
+		function Tab:AddRightToggle(text, callback)
+			createToggle(rightScroll, text, callback)
+		end
+
+		return Tab
 	end
 
 	---------------------------------------------------
