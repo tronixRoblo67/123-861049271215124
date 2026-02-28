@@ -1,4 +1,4 @@
---// Liquid Glass UI v2 (Settings + Dynamic Island)
+--// Liquid Glass UI Library v2 (Tabs Fixed + Anti Re-Execute)
 
 if getgenv().LiquidUI_Loaded then
 	return getgenv().LiquidUI_Loaded
@@ -17,21 +17,44 @@ local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+---------------------------------------------------
+-- CLEAN
+---------------------------------------------------
+
 if playerGui:FindFirstChild("LiquidUI") then
 	playerGui.LiquidUI:Destroy()
 end
 
+---------------------------------------------------
+-- SCALE
+---------------------------------------------------
+
 local SCALE = 1.5
-local function S(v) return math.floor(v / SCALE) end
+local function S(v)
+	return math.floor(v / SCALE)
+end
+
+---------------------------------------------------
+-- FONT
+---------------------------------------------------
+
 local InterFont = Font.new("rbxassetid://12187365364")
 
-local function addStroke(obj,t,tr)
+---------------------------------------------------
+-- STROKE
+---------------------------------------------------
+
+local function addStroke(obj, t, tr)
 	local s = Instance.new("UIStroke")
 	s.Color = Color3.fromRGB(255,255,255)
 	s.Thickness = t or 1.5
 	s.Transparency = tr or 0.4
 	s.Parent = obj
 end
+
+---------------------------------------------------
+-- WINDOW
+---------------------------------------------------
 
 function LiquidUI:CreateWindow(titleText, versionText)
 
@@ -53,7 +76,10 @@ function LiquidUI:CreateWindow(titleText, versionText)
 	local OWNER_WIDTH = S(1000)
 	local GAP = S(25)
 
-	-- Holder
+	---------------------------------------------------
+	-- HOLDER
+	---------------------------------------------------
+
 	local holder = Instance.new("Frame")
 	holder.Size = UDim2.new(0, LEFT_WIDTH + GAP + OWNER_WIDTH, 0, HEIGHT)
 	holder.Position = UDim2.new(0.5,0,0.5,0)
@@ -62,18 +88,23 @@ function LiquidUI:CreateWindow(titleText, versionText)
 	holder.Parent = gui
 	holder.Visible = false
 
-	local uiScale = Instance.new("UIScale", holder)
+	local uiScale = Instance.new("UIScale")
 	uiScale.Scale = 0
+	uiScale.Parent = holder
 
-	-- LEFT
-	local left = Instance.new("Frame", holder)
+	---------------------------------------------------
+	-- LEFT PANEL
+	---------------------------------------------------
+
+	local left = Instance.new("Frame")
 	left.Size = UDim2.new(0, LEFT_WIDTH, 1, 0)
 	left.BackgroundColor3 = Color3.fromRGB(255,255,255)
 	left.BackgroundTransparency = 0.75
+	left.Parent = holder
 	Instance.new("UICorner", left).CornerRadius = UDim.new(0,S(45))
 	addStroke(left)
 
-	local title = Instance.new("TextLabel", left)
+	local title = Instance.new("TextLabel")
 	title.Size = UDim2.new(1,0,0,S(80))
 	title.Position = UDim2.new(0,0,0,S(20))
 	title.BackgroundTransparency = 1
@@ -81,78 +112,178 @@ function LiquidUI:CreateWindow(titleText, versionText)
 	title.TextScaled = true
 	title.TextColor3 = Color3.fromRGB(255,255,255)
 	title.FontFace = InterFont
+	title.Parent = left
 
-	local tabsScroll = Instance.new("ScrollingFrame", left)
+	---------------------------------------------------
+	-- TABS SCROLL
+	---------------------------------------------------
+
+	local tabsScroll = Instance.new("ScrollingFrame")
 	tabsScroll.Size = UDim2.new(1,-S(20),1,-S(130))
 	tabsScroll.Position = UDim2.new(0,S(10),0,S(110))
 	tabsScroll.CanvasSize = UDim2.new(0,0,0,0)
+	tabsScroll.ScrollBarImageTransparency = 0
 	tabsScroll.BackgroundTransparency = 1
+	tabsScroll.Parent = left
 
-	local tabsLayout = Instance.new("UIListLayout", tabsScroll)
+	local tabsLayout = Instance.new("UIListLayout")
 	tabsLayout.Padding = UDim.new(0,S(15))
+	tabsLayout.Parent = tabsScroll
 
 	tabsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 		tabsScroll.CanvasSize = UDim2.new(0,0,0,tabsLayout.AbsoluteContentSize.Y + S(10))
 	end)
 
-	-- OWNER
-	local owner = Instance.new("Frame", holder)
+	---------------------------------------------------
+	-- OWNER PANEL
+	---------------------------------------------------
+
+	local owner = Instance.new("Frame")
 	owner.Size = UDim2.new(0, OWNER_WIDTH, 1, 0)
 	owner.Position = UDim2.new(0, LEFT_WIDTH + GAP, 0, 0)
 	owner.BackgroundColor3 = Color3.fromRGB(255,255,255)
 	owner.BackgroundTransparency = 0.75
+	owner.Parent = holder
 	Instance.new("UICorner", owner).CornerRadius = UDim.new(0,S(45))
 	addStroke(owner)
 
+	local divider = Instance.new("Frame")
+	divider.Size = UDim2.new(0,2,1,-S(60))
+	divider.Position = UDim2.new(0.5,-1,0,S(30))
+	divider.BackgroundColor3 = Color3.fromRGB(255,255,255)
+	divider.BackgroundTransparency = 0.4
+	divider.Parent = owner
+
 	local pagesFolder = Instance.new("Folder", owner)
+
+	---------------------------------------------------
+	-- TAB SYSTEM
+	---------------------------------------------------
+
+	local Window = {}
 	local currentPage
 
-	---------------------------------------------------
-	-- SETTINGS BUTTON (RIGHT BOTTOM)
-	---------------------------------------------------
+	function Window:CreateTab(tabName)
 
-	local settingsBtn = Instance.new("TextButton", owner)
-	settingsBtn.Size = UDim2.new(0,S(160),0,S(50))
-	settingsBtn.Position = UDim2.new(1,-S(180),1,-S(70))
-	settingsBtn.Text = "Настройки"
-	settingsBtn.TextScaled = true
-	settingsBtn.FontFace = InterFont
-	settingsBtn.TextColor3 = Color3.fromRGB(255,255,255)
-	settingsBtn.BackgroundColor3 = Color3.fromRGB(255,255,255)
-	settingsBtn.BackgroundTransparency = 0.8
-	Instance.new("UICorner", settingsBtn).CornerRadius = UDim.new(0,S(25))
-	addStroke(settingsBtn)
+		local Tab = {}
 
-	---------------------------------------------------
-	-- DYNAMIC ISLAND
-	---------------------------------------------------
+		-- Tab Button
+		local tabButton = Instance.new("TextButton")
+		tabButton.Size = UDim2.new(1,0,0,S(70))
+		tabButton.BackgroundColor3 = Color3.fromRGB(255,255,255)
+		tabButton.BackgroundTransparency = 0.85
+		tabButton.Text = tabName
+		tabButton.TextScaled = true
+		tabButton.TextColor3 = Color3.fromRGB(255,255,255)
+		tabButton.FontFace = InterFont
+		tabButton.Parent = tabsScroll
+		Instance.new("UICorner", tabButton).CornerRadius = UDim.new(0,S(25))
+		addStroke(tabButton,1.5,0.5)
 
-	local islandEnabled = false
+		-- Page
+		local page = Instance.new("Frame")
+		page.Size = UDim2.new(1,0,1,0)
+		page.BackgroundTransparency = 1
+		page.Visible = false
+		page.Parent = pagesFolder
 
-	local island = Instance.new("TextButton", gui)
-	island.Size = UDim2.new(0,S(250),0,S(55))
-	island.Position = UDim2.new(0.5,0,0,S(20))
-	island.AnchorPoint = Vector2.new(0.5,0)
-	island.Text = titleText
-	island.TextScaled = true
-	island.FontFace = InterFont
-	island.TextColor3 = Color3.fromRGB(255,255,255)
-	island.BackgroundColor3 = Color3.fromRGB(255,255,255)
-	island.BackgroundTransparency = 0.75
-	island.Visible = false
-	Instance.new("UICorner", island).CornerRadius = UDim.new(1,0)
-	addStroke(island)
+		-- Left Scroll
+		local leftScroll = Instance.new("ScrollingFrame", page)
+		leftScroll.Size = UDim2.new(0.5,-S(20),1,-S(40))
+		leftScroll.Position = UDim2.new(0,S(20),0,S(20))
+		leftScroll.CanvasSize = UDim2.new(0,0,0,0)
+		leftScroll.ScrollBarImageTransparency = 0
+		leftScroll.BackgroundTransparency = 1
 
-	island.MouseButton1Click:Connect(function()
-		island.Visible = false
-		holder.Visible = true
-		TweenService:Create(uiScale,TweenInfo.new(0.3),{Scale=1}):Play()
-		TweenService:Create(blur,TweenInfo.new(0.3),{Size=18}):Play()
-	end)
+		local leftLayout = Instance.new("UIListLayout")
+		leftLayout.Padding = UDim.new(0,S(20))
+		leftLayout.Parent = leftScroll
 
-	settingsBtn.MouseButton1Click:Connect(function()
-		islandEnabled = not islandEnabled
-	end)
+		leftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			leftScroll.CanvasSize = UDim2.new(0,0,0,leftLayout.AbsoluteContentSize.Y + S(20))
+		end)
+
+		-- Right Scroll
+		local rightScroll = leftScroll:Clone()
+		rightScroll.Position = UDim2.new(0.5,S(10),0,S(20))
+		rightScroll.Parent = page
+
+		local rightLayout = rightScroll:FindFirstChildOfClass("UIListLayout")
+		rightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			rightScroll.CanvasSize = UDim2.new(0,0,0,rightLayout.AbsoluteContentSize.Y + S(20))
+		end)
+
+		tabButton.MouseButton1Click:Connect(function()
+			if currentPage then
+				currentPage.Visible = false
+			end
+			page.Visible = true
+			currentPage = page
+		end)
+
+		local function createToggle(parent, text, callback)
+			local enabled = false
+
+			local container = Instance.new("Frame")
+			container.Size = UDim2.new(1,0,0,S(60))
+			container.BackgroundTransparency = 1
+			container.Parent = parent
+
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.new(0.7,0,1,0)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextScaled = true
+			label.TextColor3 = Color3.fromRGB(255,255,255)
+			label.FontFace = InterFont
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Parent = container
+
+			local toggle = Instance.new("Frame")
+			toggle.Size = UDim2.new(0,S(100),0,S(40))
+			toggle.Position = UDim2.new(1,-S(110),0.5,-S(20))
+			toggle.BackgroundColor3 = Color3.fromRGB(255,255,255)
+			toggle.BackgroundTransparency = 0.8
+			toggle.Parent = container
+			Instance.new("UICorner", toggle).CornerRadius = UDim.new(1,0)
+			addStroke(toggle)
+
+			local circle = Instance.new("Frame")
+			circle.Size = UDim2.new(0,S(32),0,S(32))
+			circle.Position = UDim2.new(0,S(4),0.5,-S(16))
+			circle.BackgroundColor3 = Color3.fromRGB(255,255,255)
+			circle.Parent = toggle
+			Instance.new("UICorner", circle).CornerRadius = UDim.new(1,0)
+
+			toggle.InputBegan:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+					enabled = not enabled
+
+					if enabled then
+						TweenService:Create(circle,TweenInfo.new(0.25),
+							{Position = UDim2.new(1,-S(36),0.5,-S(16))}):Play()
+					else
+						TweenService:Create(circle,TweenInfo.new(0.25),
+							{Position = UDim2.new(0,S(4),0.5,-S(16))}):Play()
+					end
+
+					if callback then
+						callback(enabled)
+					end
+				end
+			end)
+		end
+
+		function Tab:AddLeftToggle(text, callback)
+			createToggle(leftScroll, text, callback)
+		end
+
+		function Tab:AddRightToggle(text, callback)
+			createToggle(rightScroll, text, callback)
+		end
+
+		return Tab
+	end
 
 	---------------------------------------------------
 	-- OPEN / CLOSE
@@ -167,7 +298,6 @@ function LiquidUI:CreateWindow(titleText, versionText)
 
 			if opened then
 				holder.Visible = true
-				island.Visible = false
 				TweenService:Create(uiScale,TweenInfo.new(0.35),{Scale=1}):Play()
 				TweenService:Create(blur,TweenInfo.new(0.35),{Size=18}):Play()
 			else
@@ -175,15 +305,11 @@ function LiquidUI:CreateWindow(titleText, versionText)
 				TweenService:Create(blur,TweenInfo.new(0.25),{Size=0}):Play()
 				task.wait(0.25)
 				holder.Visible = false
-
-				if islandEnabled then
-					island.Visible = true
-				end
 			end
 		end
 	end)
 
-	return {}
+	return Window
 end
 
 return LiquidUI
