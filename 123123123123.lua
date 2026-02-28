@@ -1,6 +1,7 @@
 local Library = {}
 
 function Library:CreateWindow()
+
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
 
@@ -15,9 +16,9 @@ function Library:CreateWindow()
     Window.BackgroundTransparency = 1
     Window.Parent = ScreenGui
 
-    local Corner0 = Instance.new("UICorner")
-    Corner0.CornerRadius = UDim.new(0, 20)
-    Corner0.Parent = Window
+    local WC = Instance.new("UICorner")
+    WC.CornerRadius = UDim.new(0, 20)
+    WC.Parent = Window
 
     -- TITLE
     local title = Instance.new("Frame")
@@ -28,17 +29,16 @@ function Library:CreateWindow()
     title.BackgroundTransparency = 0.3
     title.Parent = Window
 
-    local Stroke0 = Instance.new("UIStroke")
-    Stroke0.Color = Color3.fromRGB(255, 255, 255)
-    Stroke0.Thickness = 1.5
-    Stroke0.Parent = title
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = Color3.fromRGB(255, 255, 255)
+    Stroke.Thickness = 1.5
+    Stroke.Parent = title
 
-    local Corner1 = Instance.new("UICorner")
-    Corner1.CornerRadius = UDim.new(0, 8)
-    Corner1.Parent = title
+    local TC = Instance.new("UICorner")
+    TC.CornerRadius = UDim.new(0, 8)
+    TC.Parent = title
 
     local TitleText = Instance.new("TextLabel")
-    TitleText.Name = "title"
     TitleText.Text = "LightVisuals"
     TitleText.Size = UDim2.new(0, 145, 0, 40)
     TitleText.Position = UDim2.new(-0.007, 0, 0, 0)
@@ -49,7 +49,6 @@ function Library:CreateWindow()
     TitleText.Parent = title
 
     local VersionText = Instance.new("TextLabel")
-    VersionText.Name = "version"
     VersionText.Text = "v0.0.1"
     VersionText.Size = UDim2.new(0, 146, 0, 37)
     VersionText.Position = UDim2.new(-0.007, 0, 0.519, 0)
@@ -68,14 +67,14 @@ function Library:CreateWindow()
     Tabs.BackgroundTransparency = 0.3
     Tabs.Parent = Window
 
-    local Stroke1 = Instance.new("UIStroke")
-    Stroke1.Color = Color3.fromRGB(255, 255, 255)
-    Stroke1.Thickness = 1.5
-    Stroke1.Parent = Tabs
+    local Stroke2 = Instance.new("UIStroke")
+    Stroke2.Color = Color3.fromRGB(255, 255, 255)
+    Stroke2.Thickness = 1.5
+    Stroke2.Parent = Tabs
 
-    local Corner2 = Instance.new("UICorner")
-    Corner2.CornerRadius = UDim.new(0, 8)
-    Corner2.Parent = Tabs
+    local TC2 = Instance.new("UICorner")
+    TC2.CornerRadius = UDim.new(0, 8)
+    TC2.Parent = Tabs
 
     local TabsHolder = Instance.new("Frame")
     TabsHolder.Name = "TabsHolder"
@@ -84,11 +83,11 @@ function Library:CreateWindow()
     TabsHolder.BackgroundTransparency = 1
     TabsHolder.Parent = Tabs
 
-    local List = Instance.new("UIListLayout")
-    List.Padding = UDim.new(0, 5)
-    List.Parent = TabsHolder
+    local UIList = Instance.new("UIListLayout")
+    UIList.Padding = UDim.new(0, 0.02)
+    UIList.Parent = TabsHolder
 
-    -- CONTENT CONTAINER
+    -- CONTENT
     local TabConteiner = Instance.new("Frame")
     TabConteiner.Name = "TabConteiner"
     TabConteiner.Size = UDim2.new(0.732, 0, 0.955, 0)
@@ -97,26 +96,32 @@ function Library:CreateWindow()
     TabConteiner.BackgroundTransparency = 0.3
     TabConteiner.Parent = Window
 
-    local Corner3 = Instance.new("UICorner")
-    Corner3.CornerRadius = UDim.new(0, 8)
-    Corner3.Parent = TabConteiner
+    local TC3 = Instance.new("UICorner")
+    TC3.CornerRadius = UDim.new(0, 8)
+    TC3.Parent = TabConteiner
 
-    local Stroke2 = Instance.new("UIStroke")
-    Stroke2.Color = Color3.fromRGB(255, 255, 255)
-    Stroke2.Thickness = 1.5
-    Stroke2.Parent = TabConteiner
+    local Stroke3 = Instance.new("UIStroke")
+    Stroke3.Color = Color3.fromRGB(255, 255, 255)
+    Stroke3.Thickness = 1.5
+    Stroke3.Parent = TabConteiner
 
     local WindowFunctions = {}
 
     function WindowFunctions:CreateTab(name)
+
         local TabButton = Instance.new("TextButton")
         TabButton.Size = UDim2.new(1, 0, 0.158, 0)
+        TabButton.BackgroundColor3 = Color3.fromRGB(255,255,255) -- БЕЛЫЙ ФОН
+        TabButton.BackgroundTransparency = 0.3
         TabButton.Text = name
         TabButton.TextScaled = true
-        TabButton.BackgroundTransparency = 1
         TabButton.TextColor3 = Color3.fromRGB(0,0,0)
         TabButton.Font = Enum.Font.GothamBold
         TabButton.Parent = TabsHolder
+
+        local CornerBtn = Instance.new("UICorner")
+        CornerBtn.CornerRadius = UDim.new(0,8)
+        CornerBtn.Parent = TabButton
 
         local Page = Instance.new("Frame")
         Page.Size = UDim2.new(1,0,1,0)
@@ -134,29 +139,6 @@ function Library:CreateWindow()
         end)
 
         local TabFunctions = {}
-
-        function TabFunctions:CreateButton(text, callback)
-            local Button = Instance.new("TextButton")
-            Button.Size = UDim2.new(0,150,0,40)
-            Button.Text = text
-            Button.TextScaled = true
-            Button.BackgroundColor3 = Color3.fromRGB(255,255,255)
-            Button.BackgroundTransparency = 0.3
-            Button.TextColor3 = Color3.fromRGB(0,0,0)
-            Button.Font = Enum.Font.GothamBold
-            Button.Parent = Page
-
-            local c = Instance.new("UICorner")
-            c.CornerRadius = UDim.new(0,8)
-            c.Parent = Button
-
-            Button.MouseButton1Click:Connect(function()
-                if callback then
-                    callback()
-                end
-            end)
-        end
-
         return TabFunctions
     end
 
