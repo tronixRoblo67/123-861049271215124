@@ -1,18 +1,18 @@
-local RedBlack = {}
-RedBlack.__index = RedBlack
+--// REDBLACK UI LIB (FULL SCRIPT)
 
---// Services
-local TweenService = game:GetService("TweenService")
+local RedBlack = {}
+
 local UIS = game:GetService("UserInputService")
 
---// Create Window
 function RedBlack:CreateWindow(title)
 
+    -- ScreenGui
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "RedBlackUI"
     ScreenGui.Parent = game.CoreGui
+    ScreenGui.ResetOnSpawn = false
 
-    -- Main Frame
+    -- Main
     local Main = Instance.new("Frame", ScreenGui)
     Main.Size = UDim2.new(0, 750, 0, 420)
     Main.Position = UDim2.new(0.5, -375, 0.5, -210)
@@ -30,18 +30,18 @@ function RedBlack:CreateWindow(title)
     })
     Grad.Rotation = 90
 
-    -- Left Panel (Name + Tabs)
+    -- Left Panel
     local LeftPanel = Instance.new("Frame", Main)
     LeftPanel.Size = UDim2.new(0,150,1,-20)
     LeftPanel.Position = UDim2.new(0,10,0,10)
     LeftPanel.BackgroundTransparency = 1
 
-    -- Name Box
+    -- NameBox (ДРАГ ТОЛЬКО ЗДЕСЬ)
     local NameBox = Instance.new("Frame", LeftPanel)
     NameBox.Size = UDim2.new(1,0,0,60)
     NameBox.BackgroundColor3 = Color3.fromRGB(40,0,0)
-    NameBox.BorderColor3 = Color3.new(0,0,0)
     NameBox.BorderSizePixel = 2
+    NameBox.BorderColor3 = Color3.new(0,0,0)
     Instance.new("UICorner", NameBox).CornerRadius = UDim.new(0,20)
 
     local Title = Instance.new("TextLabel", NameBox)
@@ -52,42 +52,12 @@ function RedBlack:CreateWindow(title)
     Title.Font = Enum.Font.GothamBold
     Title.TextScaled = true
 
-    -- Tabs Holder
-    local Tabs = Instance.new("Frame", LeftPanel)
-    Tabs.Position = UDim2.new(0,0,0,80)
-    Tabs.Size = UDim2.new(1,0,1,-80)
-    Tabs.BackgroundColor3 = Color3.fromRGB(30,0,0)
-    Tabs.BorderColor3 = Color3.new(0,0,0)
-    Tabs.BorderSizePixel = 2
-    Instance.new("UICorner", Tabs).CornerRadius = UDim.new(0,30)
+    -- DRAG SYSTEM (ТОЛЬКО NameBox)
+    local dragging = false
+    local dragStart
+    local startPos
 
-    local TabLayout = Instance.new("UIListLayout", Tabs)
-    TabLayout.Padding = UDim.new(0,10)
-
-    -- Content Area
-    local Content = Instance.new("Frame", Main)
-    Content.Size = UDim2.new(1,-180,1,-20)
-    Content.Position = UDim2.new(0,170,0,10)
-    Content.BackgroundColor3 = Color3.fromRGB(15,15,15)
-    Content.BorderColor3 = Color3.new(0,0,0)
-    Content.BorderSizePixel = 3
-    Instance.new("UICorner", Content).CornerRadius = UDim.new(0,40)
-
-    -- 2 Columns
-    local LeftColumn = Instance.new("Frame", Content)
-    LeftColumn.Size = UDim2.new(0.5,-5,1,-10)
-    LeftColumn.Position = UDim2.new(0,5,0,5)
-    LeftColumn.BackgroundTransparency = 1
-
-    local RightColumn = Instance.new("Frame", Content)
-    RightColumn.Size = UDim2.new(0.5,-5,1,-10)
-    RightColumn.Position = UDim2.new(0.5,5,0,5)
-    RightColumn.BackgroundTransparency = 1
-
-    -- Draggable
-    local dragging, dragInput, dragStart, startPos
-
-    Main.InputBegan:Connect(function(input)
+    NameBox.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
@@ -101,14 +71,8 @@ function RedBlack:CreateWindow(title)
         end
     end)
 
-    Main.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
-    end)
-
     UIS.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
             Main.Position = UDim2.new(
                 startPos.X.Scale,
@@ -119,17 +83,58 @@ function RedBlack:CreateWindow(title)
         end
     end)
 
-    -- Return API
+    -- Tabs Holder (БЕЗ ФОНА)
+    local Tabs = Instance.new("Frame", LeftPanel)
+    Tabs.Position = UDim2.new(0,0,0,80)
+    Tabs.Size = UDim2.new(1,0,1,-80)
+    Tabs.BackgroundTransparency = 1
+    Tabs.BorderSizePixel = 0
+
+    local TabLayout = Instance.new("UIListLayout", Tabs)
+    TabLayout.Padding = UDim.new(0,10)
+    TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    TabLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+    TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    -- Content Area
+    local Content = Instance.new("Frame", Main)
+    Content.Size = UDim2.new(1,-180,1,-20)
+    Content.Position = UDim2.new(0,170,0,10)
+    Content.BackgroundColor3 = Color3.fromRGB(15,15,15)
+    Content.BorderSizePixel = 3
+    Content.BorderColor3 = Color3.new(0,0,0)
+    Instance.new("UICorner", Content).CornerRadius = UDim.new(0,40)
+
+    -- Columns
+    local LeftColumn = Instance.new("Frame", Content)
+    LeftColumn.Size = UDim2.new(0.5,-5,1,-10)
+    LeftColumn.Position = UDim2.new(0,5,0,5)
+    LeftColumn.BackgroundTransparency = 1
+
+    local RightColumn = Instance.new("Frame", Content)
+    RightColumn.Size = UDim2.new(0.5,-5,1,-10)
+    RightColumn.Position = UDim2.new(0.5,5,0,5)
+    RightColumn.BackgroundTransparency = 1
+
+    -- Column Layouts
+    local LeftLayout = Instance.new("UIListLayout", LeftColumn)
+    LeftLayout.Padding = UDim.new(0,10)
+
+    local RightLayout = Instance.new("UIListLayout", RightColumn)
+    RightLayout.Padding = UDim.new(0,10)
+
+    -- API
     local Window = {}
 
     function Window:AddTab(name)
         local Button = Instance.new("TextButton", Tabs)
-        Button.Size = UDim2.new(1,-10,0,40)
+        Button.Size = UDim2.new(0.9,0,0,40)
         Button.BackgroundColor3 = Color3.fromRGB(60,0,0)
         Button.Text = name
         Button.TextColor3 = Color3.new(1,1,1)
         Button.Font = Enum.Font.Gotham
         Button.TextScaled = true
+        Button.BorderSizePixel = 0
         Instance.new("UICorner", Button).CornerRadius = UDim.new(0,15)
 
         return {
@@ -141,4 +146,22 @@ function RedBlack:CreateWindow(title)
     return Window
 end
 
-return RedBlack
+--// EXAMPLE USAGE
+
+local Window = RedBlack:CreateWindow("RedBlack Hub")
+local MainTab = Window:AddTab("Main")
+
+-- Button example
+local Btn = Instance.new("TextButton", MainTab.Left)
+Btn.Size = UDim2.new(1,-10,0,40)
+Btn.BackgroundColor3 = Color3.fromRGB(80,0,0)
+Btn.Text = "Print Hello"
+Btn.TextColor3 = Color3.new(1,1,1)
+Btn.Font = Enum.Font.Gotham
+Btn.TextScaled = true
+Btn.BorderSizePixel = 0
+Instance.new("UICorner", Btn).CornerRadius = UDim.new(0,15)
+
+Btn.MouseButton1Click:Connect(function()
+    print("Hello 🔥")
+end)
